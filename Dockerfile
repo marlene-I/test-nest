@@ -1,20 +1,19 @@
-# Use the official Node.js 16 image as the base image
-FROM node:16
+FROM node:alpine AS base
 
-# Set the working directory inside the container
-WORKDIR /app
+FROM base AS build
 
-# Copy package.json and package-lock.json to the container
-COPY package*.json ./
-
-# Install project dependencies
+WORKDIR /usr/src/app
+COPY package.json package-lock.json ./
 RUN npm install
-
-# Copy the rest of the application source code to the container
 COPY . .
 
-# Expose the port your Nest.js application is listening on
-EXPOSE 8080
+RUN npm run build
 
-# Command to start your Nest.js application
-CMD [ "npm", "run", "start:prod" ]
+FROM base AS production
+
+COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/dist ./dist
+COPY --from=build /usr/src/app/package.json .
+COPY --from=build /usr/src/app/package-lock.json .
+
+CMD ["sh", "-c", "npm run start:prod"]
