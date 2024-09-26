@@ -1,5 +1,4 @@
 steps:
-  # Install dependencies
   - name: 'node:16'  # or the node version your project uses
     entrypoint: 'npm'
     args: ['install']
